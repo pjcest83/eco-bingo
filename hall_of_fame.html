@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🏆 초포 에코 빙고 - 명예의 전당</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script src="miguel_en.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        .rank-row {
+            transition: all 0.3s ease;
+        }
+        .rank-row:hover {
+            transform: translateY(-2px) scale(1.01);
+            background: rgba(52, 211, 153, 0.1);
+            border-color: rgba(52, 211, 153, 0.4);
+        }
+        .medal-1 { color: #fbbf24; text-shadow: 0 0 10px rgba(251, 191, 36, 0.6); }
+        .medal-2 { color: #94a3b8; text-shadow: 0 0 10px rgba(148, 163, 184, 0.6); }
+        .medal-3 { color: #b45309; text-shadow: 0 0 10px rgba(180, 83, 9, 0.6); }
+        .loader {
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top-color: #34d399;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+</style>
+
+    <!-- Jua Font -->
+        <style>
+        body {  }
+        
+        /* Staggered Fade-in */
+        .stagger-item {
+            opacity: 0;
+            animation: fadeUp 0.5s ease-out forwards;
+        }
+        @keyframes fadeUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Top 3 Glow */
+        .rank-1 { box-shadow: 0 0 20px rgba(250, 204, 21, 0.6); border: 2px solid #FACC15; }
+        .rank-2 { box-shadow: 0 0 15px rgba(156, 163, 175, 0.6); border: 2px solid #9CA3AF; }
+        .rank-3 { box-shadow: 0 0 15px rgba(180, 83, 9, 0.6); border: 2px solid #B45309; }
+        
+        /* Progress Bar */
+        .exp-bar-bg {
+            width: 100%;
+            height: 6px;
+            background: #E5E7EB;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        .exp-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10B981, #34D399);
+            transition: width 1s ease-in-out;
+        }
+    </style>
+
+</head>
+<body class="min-h-screen bg-[url('img/bg.jpg')] bg-cover bg-center bg-fixed bg-no-repeat relative">
+    <!-- 어두운 오버레이 -->
+    <div class="fixed inset-0 bg-slate-900/80 pointer-events-none z-0"></div>
+
+    <div class="relative z-10 max-w-4xl mx-auto px-4 py-10">
+        <!-- 상단 헤더 -->
+        <div class="text-center mb-10">
+            <h1 class="text-5xl md:text-6xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-500 filter drop-shadow-[0_0_15px_rgba(251,191,36,0.5)] tracking-tight">
+                명예의 전당
+            </h1>
+            <p class="text-lg md:text-xl text-gray-300 font-light">초포 에코 빙고 탑 100 랭킹</p>
+            <button onclick="location.href='index.html'" class="mt-6 px-6 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-full border border-gray-600 transition-colors shadow-lg">
+                ← 메인으로 돌아가기
+            </button>
+        </div>
+
+        <!-- 로딩 표시기 -->
+        <div id="loading-indicator" class="flex flex-col items-center justify-center py-20">
+            <div class="loader mb-4"></div>
+            <p class="text-emerald-400 font-bold animate-pulse">구글 서버에서 실시간 랭킹 데이터를 불러오는 중입니다...</p>
+        </div>
+
+        <!-- 랭킹 보드 -->
+        <div id="ranking-board" class="hidden flex-col gap-3 pb-20">
+            <!-- 자바스크립트로 랭킹 아이템이 여기에 추가됩니다 -->
+        </div>
+    </div>
+
+    <script>
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbyMFO-rUT-NAprkOijIVExCEsuR_NGxDpQbag7mwoyTQ2NpVx-ac3I_fg0B66fpFN3x/exec";
+        
+        document.addEventListener("DOMContentLoaded", async () => {
+            // 미구엘 모드 체크
+            if (sessionStorage.getItem('isEnglish') === 'true' && typeof applyEnglishTranslation === 'function') {
+                applyEnglishTranslation();
+            }
+            
+            await fetchAndCalculateRankings();
+        });
+
+        // 빙고 줄 완성 패턴 (1~16번)
+        const BINGO_LINES = [
+            [1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16], // 가로
+            [1, 5, 9, 13], [2, 6, 10, 14], [3, 7, 11, 15], [4, 8, 12, 16], // 세로
+            [1, 6, 11, 16], [4, 7, 10, 13] // 대각선
+        ];
+
+        async function fetchAndCalculateRankings() {
+            try {
+                // 구글 서버(V4)에서 전체 미션 데이터 GET
+                const response = await fetch(GAS_URL);
+                if (!response.ok) throw new Error("네트워크 응답 오류");
+                const rawData = await response.json();
+                
+                // 학생별 데이터 집계
+                const studentMap = {};
+                
+                rawData.forEach(item => {
+                    const key = item.userKey;
+                    const missionNum = parseInt(item.missionNum);
+                    if (!key || isNaN(missionNum)) return;
+                    
+                    if (!studentMap[key]) {
+                        studentMap[key] = new Set();
+                    }
+                    studentMap[key].add(missionNum);
+                });
+                
+                // 빙고 줄 및 미션 수 계산
+                const students = [];
+                for (const key in studentMap) {
+                    const completedMissions = Array.from(studentMap[key]);
+                    let lines = 0;
+                    
+                    // 완성된 빙고 줄 계산
+                    BINGO_LINES.forEach(line => {
+                        const isLineCompleted = line.every(num => completedMissions.includes(num));
+                        if (isLineCompleted) lines++;
+                    });
+                    
+                    students.push({
+                        key: key,
+                        lines: lines,
+                        missionCount: completedMissions.length
+                    });
+                }
+                
+                // 1순위: 빙고 줄 많은 순, 2순위: 미션 수 많은 순 (내림차순 정렬)
+                students.sort((a, b) => {
+                    if (b.lines !== a.lines) return b.lines - a.lines;
+                    return b.missionCount - a.missionCount;
+                });
+                
+                renderRankings(students);
+                
+            } catch (error) {
+                console.error("데이터 로딩 실패:", error);
+                document.getElementById('loading-indicator').innerHTML = `
+                    <div class="text-red-400 text-center py-10 bg-red-900/20 rounded-2xl border border-red-500/50">
+                        <p class="text-2xl mb-2">⚠️ 데이터를 불러올 수 없습니다.</p>
+                        <p>인터넷 연결을 확인하거나 나중에 다시 시도해 주세요.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderRankings(students) {
+            const board = document.getElementById('ranking-board');
+            const loader = document.getElementById('loading-indicator');
+            
+            loader.classList.add('hidden');
+            board.classList.remove('hidden');
+            board.innerHTML = '';
+            
+            if (students.length === 0) {
+                board.innerHTML = `
+                    <div class="text-center py-20 text-gray-400 glass-panel rounded-3xl">
+                        <p class="text-2xl mb-2">🌱 아직 참여한 학생이 없습니다.</p>
+                        <p>첫 번째 빙고의 주인공이 되어보세요!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let currentRank = 1;
+            let displayRank = 1;
+            let prevLines = -1;
+            let prevCount = -1;
+            
+            for (let i = 0; i < students.length; i++) {
+                const s = students[i];
+                
+                // 동점자 랭킹 처리 (줄 수와 미션 수가 완벽히 동일하면 같은 등수 부여)
+                if (s.lines !== prevLines || s.missionCount !== prevCount) {
+                    displayRank = currentRank;
+                    prevLines = s.lines;
+                    prevCount = s.missionCount;
+                }
+                
+                // 100등 이하까지만 자르기 (동점자가 100등을 넘어가면 모두 표시)
+                if (displayRank > 100) break;
+                
+                currentRank++;
+                
+                // 키워드 파싱 (예: 3_1_22_홍길동)
+                const parts = s.key.split('_');
+                let nameStr = s.key;
+                if (parts.length >= 4) {
+                    nameStr = `${parts[0]}학년 ${parts[1]}반 ${parts[2]}번 ${parts[3]}`;
+                }
+
+                // 등수별 뱃지 및 메달 효과
+                let rankBadge = `<span class="text-2xl font-black text-gray-400">${displayRank}</span>`;
+                let rowBgClass = "glass-panel";
+                
+                if (displayRank === 1) {
+                    rankBadge = `<span class="text-4xl medal-1">🥇</span>`;
+                    rowBgClass += " border-yellow-500/50 bg-yellow-900/10";
+                } else if (displayRank === 2) {
+                    rankBadge = `<span class="text-4xl medal-2">🥈</span>`;
+                    rowBgClass += " border-gray-400/50 bg-gray-800/40";
+                } else if (displayRank === 3) {
+                    rankBadge = `<span class="text-4xl medal-3">🥉</span>`;
+                    rowBgClass += " border-amber-700/50 bg-amber-900/20";
+                }
+
+                const html = `
+                    <div class="rank-row ${rowBgClass} rounded-2xl p-4 md:p-6 flex items-center justify-between border">
+                        <div class="flex items-center gap-4 md:gap-6">
+                            <div class="w-12 text-center flex-shrink-0">${rankBadge}</div>
+                            <div>
+                                <h3 class="text-xl md:text-2xl font-bold text-white mb-1">${nameStr}</h3>
+                                <p class="text-sm text-gray-400">
+                                    <span class="inline-block bg-emerald-900/50 text-emerald-300 px-2 py-0.5 rounded mr-2">빙고 ${s.lines}줄</span>
+                                    <span class="inline-block bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded">미션 ${s.missionCount}개</span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="hidden md:flex flex-col items-end justify-center">
+                            <div class="text-4xl font-black text-emerald-400 opacity-20">BINGO</div>
+                        </div>
+                    </div>
+                `;
+                
+                board.insertAdjacentHTML('beforeend', html);
+            }
+        }
+    </script>
+    <!-- 명예의 전당 배경 음악 -->
+    <audio id="fame-bgm" src="back.mp3" loop preload="auto"></audio>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const bgm = document.getElementById('fame-bgm');
+            if (bgm) {
+                bgm.volume = 0.33;
+                const savedTime = sessionStorage.getItem('bgmTime');
+                if (savedTime) bgm.currentTime = parseFloat(savedTime);
+                window.addEventListener('beforeunload', () => {
+                    sessionStorage.setItem('bgmTime', bgm.currentTime);
+                });
+                 // 메인 페이지와 동일하게 잔잔한 1/3 볼륨
+                bgm.play().catch(e => console.log('BGM 재생 대기 (클릭 필요)'));
+                
+                // 브라우저 정책상 자동재생이 막힐 경우를 대비해 첫 클릭 시 재생
+                document.body.addEventListener('click', () => {
+                    if (bgm.paused) bgm.play();
+                }, { once: true });
+            }
+        });
+    </script>
+</body>
+</html>
