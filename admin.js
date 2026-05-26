@@ -3,7 +3,7 @@ const ADMIN_GAS_URL = "https://script.google.com/macros/s/AKfycbyMFO-rUT-NAprkOi
 
 function openAdminLogin() {
     const pw = prompt("관리자 비밀번호를 입력하세요.");
-    if (pw === "830512") {
+    if (pw === "890809") {
         document.getElementById('super-admin-modal').classList.remove('hidden');
     } else if (pw !== null) {
         alert("비밀번호가 틀렸습니다.");

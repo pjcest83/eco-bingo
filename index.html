@@ -688,9 +688,9 @@
                     <select id="class-select" class="bg-gray-900/80 border border-gray-600 rounded-xl px-2 py-3.5 text-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none cursor-pointer text-sm transition-all hover:border-gray-400 text-center appearance-none" disabled>
                         <option value="" disabled selected>반</option>
                     </select>
-                    <input id="number-input" type="number" min="1" max="22" placeholder="번호" class="bg-gray-900/80 border border-gray-600 rounded-xl px-2 py-3.5 text-white placeholder-gray-500 focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-sm text-center transition-all hover:border-gray-400">
+                    <input id="number-input" type="number" min="1" max="22" placeholder="번호" class="bg-gray-900/80 border border-gray-600 rounded-xl px-2 py-3.5 text-white placeholder-gray-500 focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-sm text-center transition-all hover:border-gray-400" onkeydown="if(event.key === 'Enter') startMission()">
                 </div>
-                <input id="name-input" type="text" placeholder="(띄어쓰기없이 성과 이름 모두 쓰세요..)" class="w-full bg-gray-900/80 border border-gray-600 rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-sm text-center transition-all hover:border-gray-400">
+                <input id="name-input" type="text" placeholder="(띄어쓰기없이 성과 이름 모두 쓰세요..)" class="w-full bg-gray-900/80 border border-gray-600 rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-sm text-center transition-all hover:border-gray-400" onkeydown="if(event.key === 'Enter') startMission()">
                 <button onclick="startMission()" class="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black rounded-xl transition-all cursor-pointer mt-5 shadow-[0_0_20px_rgba(5,150,105,0.5)] hover:shadow-[0_0_35px_rgba(5,150,105,0.8)] tracking-widest text-lg">
                     미션 시작하기
                 </button>
@@ -1208,7 +1208,13 @@
         const text=document.getElementById('mission-text').value.trim();
         let ready=false;
         if(data.type==='photo_only')ready=hasPhoto;
-        else if(data.type==='photo_text')ready=(hasPhoto&&text.length>0);
+        else if(data.type==='photo_text'){
+            if (currentMission === 15) {
+                ready = (text.length > 0);
+            } else {
+                ready = (hasPhoto&&text.length>0);
+            }
+        }
         else if(data.type==='text_only')ready=(text.length>0);
         else if(data.type==='canvas')ready=hasSigned;
         if(data.type==='quiz'){
@@ -1227,7 +1233,7 @@
         else{
             btn.disabled=true;
             btn.className='w-full py-4 bg-gray-700 text-gray-400 font-black rounded-xl transition-all mt-2 cursor-not-allowed opacity-50';
-            btn.innerText=window.isEnglish?(data.type==='photo_only'||(data.type==='photo_text'&&!hasPhoto)?'📸 Please upload a photo first':'Please enter text to submit'):(data.type==='photo_only'?'📸 사진을 먼저 올려주세요':data.type==='photo_text'&&!hasPhoto?'📸 사진을 먼저 올려주세요':data.type==='photo_text'&&hasPhoto?'텍스트를 입력해야 제출할 수 있어요':'텍스트를 입력해야 제출할 수 있어요');
+            btn.innerText=window.isEnglish?(data.type==='photo_only'||(data.type==='photo_text'&&!hasPhoto&&currentMission!==15)?'📸 Please upload a photo first':'Please enter text to submit'):(data.type==='photo_only'?'📸 사진을 먼저 올려주세요':(data.type==='photo_text'&&!hasPhoto&&currentMission!==15)?'📸 사진을 먼저 올려주세요':'텍스트를 입력해야 제출할 수 있어요');
             btn.onclick=submitMission;
         }
     }
