@@ -1233,16 +1233,17 @@ function switchToBingoScreen(uk){
                         checkSubmitReady();
                     }
                 } else {
-                    // 🛡️ [강제 복구 로직] 
-                    // 데이터베이스에 사진이 없더라도, 도장이 찍혀있고(isDone) 미션이 사진 타입이면 무조건 안내문 출력
-                    const currentType = (data.type || '').toLowerCase();
-                    if (currentType === 'image' || currentType === 'photo') {
-                        els.placeholder.innerHTML = `
-                            <div class="text-center p-4">
-                                <p class="text-emerald-400 font-bold mb-1">✅ 인증 사진이 이미 업로드되어 있습니다.</p>
-                                <p class="text-[11px] text-slate-400">서버 데이터가 확인되었습니다.</p>
-                                <div class="mt-3 text-xs bg-emerald-950/50 text-emerald-300 py-1 px-2 rounded border border-emerald-800 inline-block">
-                                    💡 변경하려면 사진을 다시 선택하세요.
+    const currentType = (data.type || '').toLowerCase();
+    // localStorage에 서버 동기화 결과가 있는지도 확인
+    const hasImageOnServer = localStorage.getItem('fallback_has_image_' + currentUserKey + '_' + num) === 'true';
+    
+    if ((currentType === 'photo_only' || currentType === 'photo_text') && (isDone || hasImageOnServer)) {
+        els.placeholder.innerHTML = `
+            <div class="text-center p-4">
+                <p class="text-emerald-400 font-bold mb-1">✅ 인증 사진이 이미 제출되어 있어요!</p>
+                <p class="text-[11px] text-slate-400">다시 올리고 싶다면 아래에서 새 사진을 선택하세요.</p>
+                <div class="mt-3 text-xs bg-emerald-950/50 text-emerald-300 py-1 px-2 rounded border border-emerald-800 inline-block">
+                    💡 새 사진을 선택하면 기존 인증이 교체됩니다.
                                 </div>
                             </div>
                         `;
