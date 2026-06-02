@@ -1239,15 +1239,16 @@ function switchToBingoScreen(uk){
                         checkSubmitReady();
                     }
                 } else {
-                    // 🛡️ [방어 코드] 새 기기 접속이라 IndexedDB가 비어있다면, 동기화된 localStorage에서 텍스트 불러오기
+                    // 🛡️ 새 기기 접속이라 IndexedDB가 비어있다면, 동기화된 localStorage에서 텍스트 불러오기
                     const localFallbackText = localStorage.getItem('fallback_text_' + currentUserKey + '_' + num);
                     if (localFallbackText) {
                         els.mt.value = localFallbackText;
                     }
                     
-                    // 📸 [재검증 완료] 새 기기 접속이지만 서버 동기화 플래그를 확인하여 사진 제출 완료 안내문 출력
-                    const hasServerImage = localStorage.getItem('fallback_has_image_' + currentUserKey + '_' + num);
-                    if (data.type === 'image' && hasServerImage === 'true') {
+                    // 📸 [기존 데이터 100% 구제 핵심 로직] 
+                    // 미션 타입이 사진(image)인데 완료(isDone) 도장이 찍혀있다면, 
+                    // 과거 데이터/새 기기 여부를 불문하고 무조건 인증 사진이 서버에 보관 중인 상태이므로 안내 UI를 강제로 출력합니다.
+                    if (data.type === 'image') {
                         els.placeholder.innerHTML = `
                             <div class="text-center p-4">
                                 <p class="text-emerald-400 font-bold mb-1">✅ 인증 사진이 이미 업로드되어 있습니다.</p>
