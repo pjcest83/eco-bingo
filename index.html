@@ -947,9 +947,15 @@ async function syncMissionsFromServer(uk) {
         if (userOnlyData && userOnlyData.length > 0) {
             userOnlyData.forEach(item => {
                 if (item.missionNum) {
+                    // 1. 빙고 도장 상태 복원
                     localStorage.setItem('bingo_' + uk + '_' + item.missionNum, '1');
+                    // 2. 작성했던 텍스트 복원
                     if (item.text) {
                         localStorage.setItem('fallback_text_' + uk + '_' + item.missionNum, item.text);
+                    }
+                    // 3. 📸 [재검증 완료] 구글 드라이브 사진 URL 주소가 담겨있다면 이미지 제출 완료 상태를 기록
+                    if (item.image && item.image.startsWith('http')) {
+                        localStorage.setItem('fallback_has_image_' + uk + '_' + item.missionNum, 'true');
                     }
                 }
             });
@@ -1233,10 +1239,24 @@ function switchToBingoScreen(uk){
                         checkSubmitReady();
                     }
                 } else {
-                    // 🛡️ [방어 코드 추가] 새 기기 접속이라 IndexedDB가 비어있다면, 동기화된 localStorage에서 텍스트 불러오기
+                    // 🛡️ [방어 코드] 새 기기 접속이라 IndexedDB가 비어있다면, 동기화된 localStorage에서 텍스트 불러오기
                     const localFallbackText = localStorage.getItem('fallback_text_' + currentUserKey + '_' + num);
                     if (localFallbackText) {
                         els.mt.value = localFallbackText;
+                    }
+                    
+                    // 📸 [재검증 완료] 새 기기 접속이지만 서버 동기화 플래그를 확인하여 사진 제출 완료 안내문 출력
+                    const hasServerImage = localStorage.getItem('fallback_has_image_' + currentUserKey + '_' + num);
+                    if (data.type === 'image' && hasServerImage === 'true') {
+                        els.placeholder.innerHTML = `
+                            <div class="text-center p-4">
+                                <p class="text-emerald-400 font-bold mb-1">✅ 인증 사진이 이미 업로드되어 있습니다.</p>
+                                <p class="text-[11px] text-slate-400">집이나 다른 기기에서 접속 시 사진 미리보기는 지원되지 않지만,<br>서버에는 안전하게 보관 중입니다.</p>
+                                <div class="mt-3 text-xs bg-emerald-950/50 text-emerald-300 py-1 px-2 rounded border border-emerald-800 inline-block">
+                                    💡 다른 사진으로 변경하려면 아래 버튼을 누르세요.
+                                </div>
+                            </div>
+                        `;
                     }
                     checkSubmitReady();
                 }
