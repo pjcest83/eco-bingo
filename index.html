@@ -1193,9 +1193,11 @@ function switchToBingoScreen(uk){
         const _savedText = localStorage.getItem('fallback_text_' + currentUserKey + '_' + num) || '';
 els.mt.value = _savedText;els.mt.placeholder=data.placeholder||'여기에 내용을 입력하세요.';
         els.preview.classList.add('hidden');
-        els.preview.src='';
-        els.placeholder.classList.remove('hidden');
-        els.upload.value='';
+els.preview.src='';
+if (!window._origPlaceholderHTML) window._origPlaceholderHTML = els.placeholder.innerHTML;
+els.placeholder.innerHTML = window._origPlaceholderHTML;
+els.placeholder.classList.remove('hidden');
+els.upload.value='';
 
         const cellDoneEl=document.getElementById('cell-done-'+num);
         const isDone = cellDoneEl ? !cellDoneEl.classList.contains('hidden') : false;
