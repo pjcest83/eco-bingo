@@ -1190,7 +1190,8 @@ function switchToBingoScreen(uk){
 
         if(data.noPhotoTip)els.npt.classList.remove('hidden');else els.npt.classList.add('hidden');
 
-        els.mt.value='';els.mt.placeholder=data.placeholder||'여기에 내용을 입력하세요.';
+        const _savedText = localStorage.getItem('fallback_text_' + currentUserKey + '_' + num) || '';
+els.mt.value = _savedText;els.mt.placeholder=data.placeholder||'여기에 내용을 입력하세요.';
         els.preview.classList.add('hidden');
         els.preview.src='';
         els.placeholder.classList.remove('hidden');
