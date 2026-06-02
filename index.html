@@ -1217,7 +1217,7 @@ function switchToBingoScreen(uk){
                         els.mt.value = item.text;
                     }
                     if (item.image) {
-                        if (data.type === 'canvas') {
+                        if (data.type && data.type.toLowerCase() === 'canvas') {
                             const img = new Image();
                             img.onload = () => {
                                 if(typeof signCtx !== 'undefined' && typeof signCanvas !== 'undefined') {
@@ -1245,10 +1245,12 @@ function switchToBingoScreen(uk){
                         els.mt.value = localFallbackText;
                     }
                     
-                    // 📸 [기존 데이터 100% 구제 핵심 로직] 
-                    // 미션 타입이 사진(image)인데 완료(isDone) 도장이 찍혀있다면, 
-                    // 과거 데이터/새 기기 여부를 불문하고 무조건 인증 사진이 서버에 보관 중인 상태이므로 안내 UI를 강제로 출력합니다.
-                    if (data.type === 'image') {
+                    // 📸 [대소문자 예외 완벽 방어형 최종 로직]
+                    const hasServerImage = localStorage.getItem('fallback_has_image_' + currentUserKey + '_' + num);
+                    const currentType = (data.type || '').toLowerCase();
+                    
+                    // 미션 타입이 image이거나 photo이면서 서버 동기화 플래그가 확인된다면 초록색 안내 상자 출력
+                    if ((currentType === 'image' || currentType === 'photo') && hasServerImage === 'true') {
                         els.placeholder.innerHTML = `
                             <div class="text-center p-4">
                                 <p class="text-emerald-400 font-bold mb-1">✅ 인증 사진이 이미 업로드되어 있습니다.</p>
