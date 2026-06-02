@@ -1212,55 +1212,41 @@ function switchToBingoScreen(uk){
        // Load existing data from IndexedDB if done
         if (isDone && typeof getMissionFromIndexedDB === 'function') {
             getMissionFromIndexedDB(currentUserKey, num).then(item => {
-                if (item) {
-                    if (item.text) {
-                        els.mt.value = item.text;
-                    }
-                    if (item.image) {
-                        if (data.type && data.type.toLowerCase() === 'canvas') {
-                            const img = new Image();
-                            img.onload = () => {
-                                if(typeof signCtx !== 'undefined' && typeof signCanvas !== 'undefined') {
-                                    signCtx.clearRect(0,0,signCanvas.width,signCanvas.height);
-                                    signCtx.drawImage(img,0,0);
-                                    hasSigned=true;
-                                    checkSubmitReady();
-                                }
-                            };
-                            img.src = item.image;
-                        } else {
-                            els.preview.src = item.image;
-                            els.preview.classList.remove('hidden');
-                            els.placeholder.classList.add('hidden');
-                            hasPhoto = true;
-                            checkSubmitReady();
-                        }
+                if (item && item.image) {
+                    // 데이터베이스(IndexedDB)에 사진이 있는 경우 (기존 방식)
+                    if (data.type && data.type.toLowerCase() === 'canvas') {
+                        const img = new Image();
+                        img.onload = () => {
+                            if(typeof signCtx !== 'undefined' && typeof signCanvas !== 'undefined') {
+                                signCtx.clearRect(0,0,signCanvas.width,signCanvas.height);
+                                signCtx.drawImage(img,0,0);
+                                hasSigned=true;
+                                checkSubmitReady();
+                            }
+                        };
+                        img.src = item.image;
                     } else {
+                        els.preview.src = item.image;
+                        els.preview.classList.remove('hidden');
+                        els.placeholder.classList.add('hidden');
+                        hasPhoto = true;
                         checkSubmitReady();
                     }
                 } else {
-                    // 🛡️ 새 기기 접속이라 IndexedDB가 비어있다면, 동기화된 localStorage에서 텍스트 불러오기
-                    const localFallbackText = localStorage.getItem('fallback_text_' + currentUserKey + '_' + num);
-                    if (localFallbackText) {
-                        els.mt.value = localFallbackText;
-                    }
-                    
-                    // 📸 [서버 변수명 결함 원천 차단 마스터 로직]
-                    // 대소문자나 서버에서 넘어오는 이미지 주소 변수명(image, imageUrl 등)이 꼬여서 깨지더라도,
-                    // "빙고 도장이 찍혀있고(isDone), 미션의 종류가 사진 업로드(image/photo) 챌린지"라면
-                    // 팩트(Fact)상 100% 구글 서버에 사진이 저장된 것이므로 초록색 상자를 강제로 결합하여 출력합니다.
+                    // 🛡️ [강제 복구 로직] 
+                    // 데이터베이스에 사진이 없더라도, 도장이 찍혀있고(isDone) 미션이 사진 타입이면 무조건 안내문 출력
                     const currentType = (data.type || '').toLowerCase();
                     if (currentType === 'image' || currentType === 'photo') {
                         els.placeholder.innerHTML = `
                             <div class="text-center p-4">
                                 <p class="text-emerald-400 font-bold mb-1">✅ 인증 사진이 이미 업로드되어 있습니다.</p>
-                                <p class="text-[11px] text-slate-400">집이나 다른 기기에서 접속 시 사진 미리보기는 지원되지 않지만,<br>서버에는 안전하게 보관 중입니다.</p>
+                                <p class="text-[11px] text-slate-400">서버 데이터가 확인되었습니다.</p>
                                 <div class="mt-3 text-xs bg-emerald-950/50 text-emerald-300 py-1 px-2 rounded border border-emerald-800 inline-block">
-                                    💡 다른 사진으로 변경하려면 아래 버튼을 누르세요.
+                                    💡 변경하려면 사진을 다시 선택하세요.
                                 </div>
                             </div>
                         `;
-                        hasPhoto = true; // 사진 업로드 상태를 프론트엔드가 즉시 인정하도록 강제 연동
+                        hasPhoto = true; 
                     }
                     checkSubmitReady();
                 }
