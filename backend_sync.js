@@ -1,4 +1,4 @@
-const GAS_URL = "https://script.google.com/macros/s/AKfycby72u7c4_V2tXzUd98K1EyJLBgOKlwtXwoSdUGBJ2cGTULA4nMvpDgveVJyYWEm72xD/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwde_qrswyczR9RaiXQecp-VagRtpO6u4WmtAeu3VvmZIxoWJYRUFllYb5E5VuiceTi/exec";                          
 const DB_NAME = "EcoBingoDB";
 const DB_VERSION = 1;
 const STORE_NAME = "missions";

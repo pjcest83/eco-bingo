@@ -1,5 +1,5 @@
 // 1. We must define GAS_URL here just in case backend_sync.js loads late or scope issues occur.
-const ADMIN_GAS_URL = "https://script.google.com/macros/s/AKfycbyMFO-rUT-NAprkOijIVExCEsuR_NGxDpQbag7mwoyTQ2NpVx-ac3I_fg0B66fpFN3x/exec";
+const ADMIN_GAS_URL = "https://script.google.com/macros/s/AKfycbwde_qrswyczR9RaiXQecp-VagRtpO6u4WmtAeu3VvmZIxoWJYRUFllYb5E5VuiceTi/exec";
 
 function openAdminLogin() {
     const pw = prompt("관리자 비밀번호를 입력하세요.");

@@ -936,13 +936,66 @@
         bingo.classList.add('opacity-0');
         setTimeout(()=>{bingo.classList.add('hidden');bingo.classList.remove('opacity-0'); bingo.classList.add('zoom-in');landing.style.display='';if(bg)bg.style.display='';landing.classList.remove('opacity-0');window.scrollTo(0,0);},400);
     }
-    function switchToBingoScreen(uk){
-        const landing=document.getElementById('landing-screen'),bingo=document.getElementById('bingo-screen'),bg=document.getElementById('bg-canvas');
-        currentUserKey=uk||'';
-        landing.classList.add('opacity-0');
-        setTimeout(()=>{landing.style.display='none';if(bg)bg.style.display='none';bingo.classList.remove('hidden');void bingo.offsetWidth;bingo.classList.remove('opacity-0'); bingo.classList.add('zoom-in');window.scrollTo(0,0);initDB().then(()=>loadUserMissions(currentUserKey));},400);
+// [새로 추가되는 서버 데이터 동기화 함수]
+async function syncMissionsFromServer(uk) {
+    try {
+        const response = await fetch(`${GAS_URL}?userKey=${encodeURIComponent(uk)}`); 
+        if (!response.ok) throw new Error(`서버 응답 오류: ${response.status}`);
+        
+        const userOnlyData = await response.json();
+        
+        if (userOnlyData && userOnlyData.length > 0) {
+            userOnlyData.forEach(item => {
+                if (item.missionNum) {
+                    localStorage.setItem('bingo_' + uk + '_' + item.missionNum, '1');
+                    if (item.text) {
+                        localStorage.setItem('fallback_text_' + uk + '_' + item.missionNum, item.text);
+                    }
+                }
+            });
+        }
+    } catch (error) {
+        console.error("서버 데이터 동기화 실패:", error);
+    }
+}
+
+// [덮어쓰기 된 기존 화면 전환 함수]
+function switchToBingoScreen(uk){
+    const landing = document.getElementById('landing-screen');
+    const bingo = document.getElementById('bingo-screen');
+    const bg = document.getElementById('bg-canvas');
+    
+    currentUserKey = uk || '';
+    landing.classList.add('opacity-0');
+    
+    // 로딩 안내 토스트 
+    if (typeof showToast === 'function') {
+        showToast('서버에서 이전 빙고 기록을 불러오고 있습니다...');
     }
 
+    setTimeout(async () => {
+        landing.style.display = 'none';
+        if (bg) bg.style.display = 'none';
+        
+        bingo.classList.remove('hidden');
+        void bingo.offsetWidth;
+        bingo.classList.remove('opacity-0'); 
+        bingo.classList.add('zoom-in');
+        window.scrollTo(0,0);
+        
+        if (typeof initDB === 'function') {
+            await initDB();
+        }
+        
+        // 1. 빙고판을 그리기 전에 서버에서 데이터 가져오기 (순서 제어)
+        await syncMissionsFromServer(currentUserKey);
+        
+        // 2. 동기화된 데이터를 바탕으로 빙고 도장 화면에 표시
+        if (typeof loadUserMissions === 'function') {
+            loadUserMissions(currentUserKey);
+        }
+    }, 400);
+}
     // ── 빙고줄 + 동그라미 ───────────────────────────────────────
         function drawRedCircle(n){
         const cell = document.getElementById('cell-'+n);
@@ -1137,6 +1190,7 @@
         els.submitBtn.innerText = window.isEnglish ? (isDone ? '✏️ Edit and Resubmit (Text required)' : 'Please enter text to submit') : (isDone ? '✏️ 수정하여 다시 제출하기 (내용 입력 필요)' : '내용을 입력해야 제출할 수 있어요');
         
         // Load existing data from IndexedDB if done
+       // Load existing data from IndexedDB if done
         if (isDone && typeof getMissionFromIndexedDB === 'function') {
             getMissionFromIndexedDB(currentUserKey, num).then(item => {
                 if (item) {
@@ -1165,6 +1219,13 @@
                     } else {
                         checkSubmitReady();
                     }
+                } else {
+                    // 🛡️ [방어 코드 추가] 새 기기 접속이라 IndexedDB가 비어있다면, 동기화된 localStorage에서 텍스트 불러오기
+                    const localFallbackText = localStorage.getItem('fallback_text_' + currentUserKey + '_' + num);
+                    if (localFallbackText) {
+                        els.mt.value = localFallbackText;
+                    }
+                    checkSubmitReady();
                 }
             });
         }
