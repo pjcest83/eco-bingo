@@ -959,6 +959,17 @@ async function syncMissionsFromServer(uk) {
     }
 }
 
+// 🧹 [스텝 1] 이전 학생이 남겨둔 동그라미 잔상을 완전히 청소하는 함수 정의
+function resetBingoBoardUI() {
+    const cells = document.querySelectorAll('[id^="cell-"]');
+    cells.forEach(cell => {
+        const circle = cell.querySelector('.pointer-events-none.z-10');
+        if (circle) {
+            circle.remove();
+        }
+    });
+}
+
 // [덮어쓰기 된 기존 화면 전환 함수]
 function switchToBingoScreen(uk){
     const landing = document.getElementById('landing-screen');
@@ -968,7 +979,9 @@ function switchToBingoScreen(uk){
     currentUserKey = uk || '';
     landing.classList.add('opacity-0');
     
-    // 로딩 안내 토스트 
+    // 🚨 [스텝 2] 화면 전환 연출이 시작되자마자 기존 동그라미 잔상을 깨끗이 청소합니다.
+    resetBingoBoardUI();
+    
     if (typeof showToast === 'function') {
         showToast('서버에서 이전 빙고 기록을 불러오고 있습니다...');
     }
@@ -987,10 +1000,10 @@ function switchToBingoScreen(uk){
             await initDB();
         }
         
-        // 1. 빙고판을 그리기 전에 서버에서 데이터 가져오기 (순서 제어)
+        // 1. 빙고판을 그리기 전에 서버에서 데이터 가져오기
         await syncMissionsFromServer(currentUserKey);
         
-        // 2. 동기화된 데이터를 바탕으로 빙고 도장 화면에 표시
+        // 2. 동기화된 데이터를 바탕으로 현재 로그인한 학생의 빙고 도장만 표시
         if (typeof loadUserMissions === 'function') {
             loadUserMissions(currentUserKey);
         }
