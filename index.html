@@ -1248,7 +1248,19 @@ els.mt.value = _savedText;els.mt.placeholder=data.placeholder||'여기에 내용
                                 </div>
                             </div>
                         `;
-                        hasPhoto = true; 
+                                            hasPhoto = true;
+                    } else if (currentType === 'canvas') {
+                        if (isDone || hasImageOnServer) {
+                            const canvasNotice = document.createElement('div');
+                            canvasNotice.className = 'text-center p-3 mb-3 bg-emerald-950/50 border border-emerald-800 rounded-xl';
+                            canvasNotice.innerHTML = `
+                                <p class="text-emerald-400 font-bold mb-1">✅ 부모님 서명이 이미 완료되어 있어요!</p>
+                                <p class="text-[11px] text-slate-400">다시 서명하려면 아래 캔버스에 그려주세요.</p>
+                            `;
+                            const canvasArea = document.getElementById('canvas-area');
+                            if (canvasArea) canvasArea.insertBefore(canvasNotice, canvasArea.firstChild);
+                            hasSigned = true;
+                        }
                     }
                     checkSubmitReady();
                 }
