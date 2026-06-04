@@ -1585,8 +1585,11 @@ els.upload.value='';
     }
 
     function completeQuizMission() {
-        currentMission = 11;
-        saveMissionToDB(currentUserKey, currentMission);
+    currentMission = 11;
+    saveMissionToDB(currentUserKey, currentMission);
+    if (typeof submitMissionToBackend === 'function') {
+        submitMissionToBackend(currentUserKey, 11, '그린 퀴즈 통과 (' + currentScore + '/20)', '');
+    }
         const doneBadge = document.getElementById('cell-done-11');
         if (doneBadge) {
             doneBadge.classList.remove('hidden');
